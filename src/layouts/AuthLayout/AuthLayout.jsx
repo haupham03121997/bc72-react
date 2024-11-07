@@ -17,7 +17,7 @@ export default function AuthLayout({ children }) {
 
   return (
     <div className="w-screen h-screen flex items-center justify-center">
-      <div className="bg-white rounded-2xl p-8">
+      <div className="rounded-2xl p-8">
         <div className="w-full flex items-center justify-center mb-6">
           <img src="/vite.svg" className="w-14 cursor-pointer" alt="logo" onClick={() => navigate(PATH.HOME)} />
         </div>

@@ -1,14 +1,17 @@
 import { AppBar, Avatar, Button, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { PATH } from '../../routes/path';
 import { logout } from '../../store/slices/user.slice';
+import ThemeContext from '../../context/ThemeContext';
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [theme, setTheme] = useContext(ThemeContext);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -28,6 +31,13 @@ const Header = () => {
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const handleChangeTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+    localStorage.setItem('theme', theme === 'dark' ? 'light' : 'dark');
+  };
+
+  console.log('theme', theme);
 
   return (
     <AppBar position="static">
@@ -54,6 +64,9 @@ const Header = () => {
             </Menu>
           </>
         )}
+        <Button onClick={handleChangeTheme} size="small" variant="contained">
+          Thay đổi theme
+        </Button>
       </Toolbar>
     </AppBar>
   );

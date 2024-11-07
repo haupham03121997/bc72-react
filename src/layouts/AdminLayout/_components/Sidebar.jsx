@@ -4,8 +4,35 @@ import EventIcon from '@mui/icons-material/Event';
 import WorkIcon from '@mui/icons-material/Work';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { PATH } from '../../../routes/path';
+import MenuItem from './MenuItem';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+
+  const menu = [
+    {
+      href: PATH.ADMIN,
+      icon: <DashboardIcon />,
+      title: 'Dashboard',
+    },
+    {
+      href: PATH.USER_MANAGEMENT,
+      icon: <EventIcon />,
+      title: 'Users management',
+    },
+    {
+      href: PATH.MOVIE_MANAGEMENT,
+      icon: <WorkIcon />,
+      title: 'Movies management',
+    },
+  ];
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
   return (
     <Drawer
       variant="permanent"
@@ -17,30 +44,9 @@ const Sidebar = () => {
     >
       <Toolbar />
       <List>
-        <ListItem button>
-          <ListItemIcon>
-            <DashboardIcon />
-          </ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItem>
-        <ListItem button>
-          <ListItemIcon>
-            <EventIcon />
-          </ListItemIcon>
-          <ListItemText primary="Events" />
-        </ListItem>
-        <ListItem button>
-          <ListItemIcon>
-            <WorkIcon />
-          </ListItemIcon>
-          <ListItemText primary="Jobs" />
-        </ListItem>
-        <ListItem button>
-          <ListItemIcon>
-            <ContactMailIcon />
-          </ListItemIcon>
-          <ListItemText primary="Contact" />
-        </ListItem>
+        {menu.map((item) => (
+          <MenuItem key={item.href} href={item.href} icon={item.icon} title={item.title} />
+        ))}
       </List>
     </Drawer>
   );
