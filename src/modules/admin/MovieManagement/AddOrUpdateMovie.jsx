@@ -1,4 +1,3 @@
-import { UploadFile } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -9,6 +8,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   Radio,
   RadioGroup,
   Stack,
@@ -20,8 +20,10 @@ import React, { useEffect, useRef } from 'react';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Controller, useForm } from 'react-hook-form';
 import dayjs from 'dayjs';
+import { DeleteOutlined } from '@mui/icons-material';
+import { format } from 'date-fns';
 
-export default function AddOrUpdateMovie({ isOpen, onClose, onSubmit }) {
+export default function AddOrUpdateMovie({ isOpen, onClose, dataEdit, onSubmit }) {
   const inputFileRef = useRef(null);
 
   const {
@@ -30,6 +32,7 @@ export default function AddOrUpdateMovie({ isOpen, onClose, onSubmit }) {
     formState: { errors },
     control,
     setValue,
+    watch,
   } = useForm({
     defaultValues: {
       tenPhim: '',
@@ -43,11 +46,34 @@ export default function AddOrUpdateMovie({ isOpen, onClose, onSubmit }) {
     },
   });
 
+  const fieldHinhAnh = watch('hinhAnh');
+
+  const previewImage = (file) => {
+    if (typeof file === 'string' && file.startsWith('http')) {
+      return file;
+    }
+    const url = file ? URL.createObjectURL(file) : '';
+    return url;
+  };
+
+  useEffect(() => {
+    if (dataEdit) {
+      setValue('tenPhim', dataEdit.tenPhim);
+      setValue('trailer', dataEdit.trailer);
+      setValue('moTa', dataEdit.moTa);
+      setValue('danhGia', dataEdit.danhGia);
+      setValue('ngayKhoiChieu', dataEdit.ngayKhoiChieu);
+      setValue('trangThai', dataEdit.dangChieu);
+      setValue('hot', dataEdit.hot);
+      setValue('hinhAnh', dataEdit.hinhAnh);
+    }
+  }, [dataEdit]);
+
   return (
     <>
       <Dialog open={isOpen} onClose={onClose} maxWidth='lg'>
         <form className='w-[550px]' onSubmit={handleSubmit(onSubmit)}>
-          <DialogTitle>Add movie</DialogTitle>
+          <DialogTitle>{dataEdit ? 'Edit movie' : 'Add movie'} </DialogTitle>
           <Stack spacing={4} p={3}>
             <TextField label='Movie name' fullWidth {...register('tenPhim')} />
             <TextField label='Trailer' fullWidth {...register('trailer')} />
@@ -65,6 +91,9 @@ export default function AddOrUpdateMovie({ isOpen, onClose, onSubmit }) {
                       const formatDate = dayjs(date).format('DD/MM/YYYY');
                       field.onChange(formatDate);
                     }}
+                    defaultValue={
+                      dataEdit?.ngayKhoiChieu ? dayjs(format(dataEdit?.ngayKhoiChieu, 'dd/MM/yyy'), 'DD/MM/YYYY') : null
+                    }
                   />
                 );
               }}
@@ -100,21 +129,46 @@ export default function AddOrUpdateMovie({ isOpen, onClose, onSubmit }) {
                 borderRadius: 2,
                 cursor: 'pointer',
                 flexDirection: 'column',
+                overflow: 'hidden',
               }}
               onClick={() => {
-                inputFileRef.current.click();
+                !fieldHinhAnh && inputFileRef.current.click();
               }}
               display='flex'
               alignItems='center'
               justifyContent='center'
             >
-              <CloudUploadIcon sx={{ width: 40, height: 40 }} />
-              <Typography fontSize={24} fontWeight={600}>
-                Upload image
-              </Typography>
+              {!fieldHinhAnh ? (
+                <>
+                  <CloudUploadIcon sx={{ width: 40, height: 40 }} />
+                  <Typography fontSize={24} fontWeight={600}>
+                    Upload image
+                  </Typography>
+                </>
+              ) : (
+                <Box width='100%' height='100%' position='relative'>
+                  <IconButton
+                    sx={{ position: 'absolute', top: 4, right: 4, zIndex: 10 }}
+                    onClick={() => {
+                      setValue('hinhAnh', null);
+                    }}
+                  >
+                    <DeleteOutlined />
+                  </IconButton>
+                  <img src={previewImage(fieldHinhAnh)} className='w-full h-full object-cover' />
+                </Box>
+              )}
             </Box>
           </Stack>
-          <input type='file' hidden ref={inputFileRef} />
+          <input
+            type='file'
+            accept='.png, .jpg, .jpeg'
+            hidden
+            ref={inputFileRef}
+            onChange={(event) => {
+              setValue('hinhAnh', event.target.files[0]);
+            }}
+          />
           <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
             <Button type='submit' onClick={handleSubmit}>

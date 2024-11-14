@@ -33,22 +33,22 @@ import { LoadingButton } from '@mui/lab';
 import toast from 'react-hot-toast';
 import { Add, PlusOne } from '@mui/icons-material';
 import AddOrUpdateMovie from './AddOrUpdateMovie';
+import useOpen from '../../../hooks/useOpen';
 
 export default function MovieManagementPage() {
   const [page, setPage] = useState(1);
-  const [open, setOpen] = useState(false);
+
+  const { open, handleClickOpen, onClose } = useOpen();
+
   const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
+  const [dataEdit, setDataEdit] = useState(null);
   const [movieId, setMovieId] = useState(null);
 
   const queryClient = useQueryClient();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
   const handleClose = () => {
     if (!isPending) {
-      setOpen(false);
+      onClose();
       setMovieId(null);
     }
   };
@@ -62,13 +62,26 @@ export default function MovieManagementPage() {
     mutationFn: (id) => movieApi.deleteMovie(id),
     onError: (error) => {
       toast.success('Xóa phim thất bại. Vui lòng thử lại');
-      setOpen(false);
     },
     onSuccess: (response) => {
       toast.success('Xóa phim thành công');
       queryClient.refetchQueries(['movieList', page]);
-      setOpen(false);
+    },
+    onSettled: () => {
+      onClose();
       setMovieId(null);
+    },
+  });
+
+  const { mutate: mutateAddMovie } = useMutation({
+    mutationFn: (formData) => movieApi.addMovie(formData),
+    onError: (error) => {
+      toast.success('Thêm phim thất bại. Vui lòng thử lại');
+    },
+    onSuccess: (response) => {
+      toast.success('Thêm phim thành công');
+      queryClient.refetchQueries(['movieList', page]);
+      setIsAddOrUpdate(false);
     },
   });
 
@@ -77,6 +90,25 @@ export default function MovieManagementPage() {
 
   const handleDeleteMovie = () => {
     mutate(movieId);
+  };
+
+  const handleAddOrEditMovie = (formValues) => {
+    if (dataEdit) {
+      // goi api cap nhat phim
+    } else {
+      const formData = new FormData();
+      formData.append('maNhom', 'GP01');
+      formData.append('tenPhim', formValues.tenPhim);
+      formData.append('trailer', formValues.trailer);
+      formData.append('moTa', formValues.moTa);
+      formData.append('ngayKhoiChieu', formValues.ngayKhoiChieu);
+      formData.append('danhGia', formValues.danhGia);
+      formData.append('hinhAnh', formValues.hinhAnh);
+      formData.append('hot', formValues.hot);
+      formData.append('dangChieu', formValues.trangThai);
+      formData.append('sapChieu', !formValues.trangThai);
+      mutateAddMovie(formData);
+    }
   };
 
   return (
@@ -150,7 +182,12 @@ export default function MovieManagementPage() {
                   <TableCell>{item.danhGia}</TableCell>
                   <TableCell>
                     <Stack direction='row' spacing={2}>
-                      <IconButton>
+                      <IconButton
+                        onClick={() => {
+                          setDataEdit(item);
+                          setIsAddOrUpdate(true);
+                        }}
+                      >
                         <EditOutlinedIcon color='warning' />
                       </IconButton>
                       <IconButton
@@ -225,10 +262,12 @@ export default function MovieManagementPage() {
       {/* ADD OR UPDATE MOVIE DIALOG */}
       <AddOrUpdateMovie
         isOpen={isAddOrUpdate}
-        onClose={() => setIsAddOrUpdate(false)}
-        onSubmit={(formValues) => {
-          console.log('formValues', formValues);
+        onClose={() => {
+          setIsAddOrUpdate(false);
+          setDataEdit(null);
         }}
+        onSubmit={handleAddOrEditMovie}
+        dataEdit={dataEdit}
       />
     </Box>
   );
